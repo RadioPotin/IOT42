@@ -28,6 +28,7 @@ Requirements:
 Read the following:
  - [Configuring the app](https://kubernetes.io/docs/concepts/overview/working-with-objects/)
  - [deployment, service and ingress](https://dwdraju.medium.com/how-deployment-service-ingress-are-related-in-their-manifest-a2e553cf0ffb)
+ - Use an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) in conjuntion with an [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/), (we use [ingress-nginx](https://kubernetes.github.io/ingress-nginx/deploy/)) to expose HTTP/S routes to [Services inside the cluster](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)
  - [yaml files explained](https://www.youtube.com/watch?v=qmDzcu5uY1I)
 
 ## p3
