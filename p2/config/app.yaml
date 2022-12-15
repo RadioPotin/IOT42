@@ -86,9 +86,77 @@ spec:
               name: app-one
 ---
 #APP2 SERVICE
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-two
+  labels:
+    run: app-two
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5000
+  selector:
+    app: app-two
 ---
 #APP2 DEPLOYMENT
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-two
+spec:
+  selector:
+    matchLabels:
+      app: app-two
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: app-two
+    spec:
+      containers:
+        - name: app-two
+          image: app
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+              name: app-two
 ---
 #APP3 SERVICE
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-three
+  labels:
+    run: app-three
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5000
+  selector:
+    app: app-three
 ---
 #APP3 DEPLOYMENT
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-three
+spec:
+  selector:
+    matchLabels:
+      app: app-three
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: app-three
+    spec:
+      containers:
+        - name: app-three
+          image: app
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+              name: app-three
