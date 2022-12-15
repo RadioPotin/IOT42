@@ -1,15 +1,7 @@
 # Fastapi installation
 
-Make sure pip is already installed.
+Build the Docker image with `docker build`
 
-Run the following command:
+Create and run a container with `docker run`
 
-```
-pip install "fastapi[all]"
-```
-
-This will install uvicorn among other packages. To run the app, run:
-
-```
-uvicorn main:app --reload
-```
+The container expose the fastapi app on port `80`.
