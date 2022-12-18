@@ -1,132 +1,79 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-unless File.directory?('config')
-  FileUtils.mkdir('config')
-end
-FileUtils.touch 'config/id_ed25519'
-FileUtils.touch 'config/id_ed25519.pub'
-
-### ENVIRONMENTS
-
-# Vagrant
 V_BOX                 = "bento/centos-7.9"
-V_PROVIDER            = "virtualbox"
-
-# VIRTUALBOX
-VM_CPU                = "1"
-VM_MEMORY             = "4096"
-
-# VM
-VM_SERVER_HOSTNAME    = "dapintoS"
-VM_WORKER_HOSTNAME    = "dapintoSW"
+VM_SERVER_HOSTNAME    = "pgueugnoS"
+VM_WORKER_HOSTNAME    = "pgueugnoSW"
 VM_SERVER_IP          = "192.168.56.110"
 VM_WORKER_IP          = "192.168.56.111"
-# SSH
-HOST_PUBLIC_KEY_FILE  = "host_id_rsa_pub"
-VM_PUBLIC_KEY_FILE    = "vm_id_ed25519_pub"
-VM_PRIVATE_KEY_FILE   = "vm_id_ed25519"
-#
-Vagrant.configure("2") do |config|
-  # SSH keys
-  config.trigger.before :up, :provision do |trigger|
-    trigger.run = { path: "scripts/keygen.sh" }
-  end
-  # OS
-  config.vm.box     = V_BOX
-  config.vm.box_url = V_BOX
-  # SERVER IN CONTROLLER MODE
-  config.vm.define VM_SERVER_HOSTNAME do |control_server|
-    control_server.vm.network "private_network", ip: VM_SERVER_IP
-    control_server.vm.hostname = VM_SERVER_HOSTNAME
-    if V_PROVIDER == "virtualbox"
-      control_server.vm.provider V_PROVIDER do |vb|
-        vb.cpus                   = VM_CPU
-        vb.memory                 = VM_MEMORY
-        vb.linked_clone           = true if Gem::Version.new(Vagrant::VERSION) >= Gem::Version.new('1.8.0')
-        vb.check_guest_additions  = false
-        vb.customize ["modifyvm", :id, "--name", VM_SERVER_HOSTNAME]
-        vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-        vb.customize ['modifyvm', :id, '--graphicscontroller', 'None']
-      end
-      ## TODO
-      ## Not forget to install k3s here as server
-      control_server.vm.provision :shell do |s|
-        s.path  = "scripts/k3s_install.sh"
-        s.env   = {
-          "K3S_MODE"            => "SERVER",
-          "VM_SERVER_IP"        => VM_SERVER_IP,
-          "VM_SERVER_HOSTNAME"  => VM_SERVER_HOSTNAME,
-        }
-      end
 
-    end
+Vagrant.configure("2") do |config|
+
+  config.vm.box = V_BOX
+
+  # synced folder between host and all VMs
+  config.vm.synced_folder "./sync", "/home/vagrant/", type: "virtualbox"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.cpus                   = 1
+    vb.memory                 = "1024"
+    vb.linked_clone           = true
   end
-  # SERVER WORKER IN AGENT MODE
-  config.vm.define VM_WORKER_HOSTNAME do |control_worker|
-    control_worker.vm.network "private_network", ip: VM_WORKER_IP
-    control_worker.vm.hostname = VM_WORKER_HOSTNAME
-    if V_PROVIDER == "virtualbox"
-      control_worker.vm.provider V_PROVIDER do |vb|
-        vb.cpus                   = VM_CPU
-        vb.memory                 = VM_MEMORY
-        vb.linked_clone           = true if Gem::Version.new(Vagrant::VERSION) >= Gem::Version.new('1.8.0')
-        vb.check_guest_additions  = false
-        vb.customize ["modifyvm", :id, "--name", VM_WORKER_HOSTNAME]
-        vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-        vb.customize ['modifyvm', :id, '--graphicscontroller', 'None']
-      end
-      # Retrieving node token from server
-      control_worker.vm.provision :shell do |s|
-        s.privileged  = false
-        s.path        = "scripts/retrieve_node_token.sh"
-        s.env         = {
-          "VM_SERVER_IP"  => VM_SERVER_IP,
-        }
-      end
-      ##  install k3s as agent
-      control_worker.vm.provision :shell do |s|
-        s.path  = "scripts/k3s_install.sh"
-        s.env   = {
-          "K3S_MODE"            => "AGENT",
-          "VM_SERVER_IP"        => VM_SERVER_IP,
-          "VM_WORKER_IP"        => VM_WORKER_IP,
-          "VM_WORKER_HOSTNAME"  => VM_WORKER_HOSTNAME,
-        }
-      end
-    end
-  end
-  ## Scripts to normalize both machines
-  # Update and upgrade packages, DL necessary packages for setup like net-tools
+
+  # tools package required to install k3s with curl
   config.vm.provision :shell do |s|
     s.inline = <<-SHELL
       uname -a
-      echo "\t\nyum UPDATE...\n"
-      yum check-update
+      echo "\t\n ADD BUSYBOX...\n"
       yum -y install net-tools
-      yum -y update
     SHELL
   end
-  config.vm.provision :file do |f|
-    f.source      = "#{Dir.home}/.ssh/id_rsa.pub"
-    f.destination = HOST_PUBLIC_KEY_FILE
+
+  # ! ----------- Server -----------
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  config.vm.define VM_SERVER_HOSTNAME do |control_server|
+    control_server.vm.network "private_network", ip: VM_SERVER_IP
+    control_server.vm.hostname = VM_SERVER_HOSTNAME
+
+    # Kubernetes API Access
+    control_server.vm.network "forwarded_port", guest: 6443, host: 6443
+
+      # Define the resources for the virtualbox
+    control_server.vm.provider "virtualbox" do |vb|
+      vb.name = VM_SERVER_HOSTNAME
+    end
+
+    # Run setup script to install K3s on VM
+    control_server.vm.provision :shell do |s|
+      s.path  = "scripts/k3s_install.sh"
+      s.env   = {
+        "K3S_MODE"            => "SERVER",
+        "VM_SERVER_IP"        => VM_SERVER_IP,
+        "VM_SERVER_HOSTNAME"  => VM_SERVER_HOSTNAME,
+      }
+    end
   end
-  config.vm.provision :file do |f|
-    f.source      = "config/id_ed25519.pub"
-    f.destination = VM_PUBLIC_KEY_FILE
-  end
-  config.vm.provision :file do |f|
-    f.source      = "config/id_ed25519"
-    f.destination = VM_PRIVATE_KEY_FILE
-  end
-  config.vm.provision :shell do |s|
-    s.path  = "scripts/ssh_access.sh"
-    s.env   = {
-      "HOST_PUBLIC_KEY_FILE"  => HOST_PUBLIC_KEY_FILE,
-      "VM_PUBLIC_KEY_FILE"    => VM_PUBLIC_KEY_FILE,
-      "VM_PRIVATE_KEY_FILE"   => VM_PRIVATE_KEY_FILE
-    }
+
+  # ! ----------- Worker -----------
+
+  config.vm.define VM_WORKER_HOSTNAME do |control_worker|
+    control_worker.vm.network "private_network", ip: VM_WORKER_IP
+    control_worker.vm.hostname = VM_WORKER_HOSTNAME
+
+    # Define the resources for virtualbox
+    control_worker.vm.provider "virtualbox" do |vb|
+      vb.name = VM_WORKER_HOSTNAME
+    end
+
+    # Run setup script to install K3s on VM
+    control_worker.vm.provision :shell do |s|
+      s.path  = "scripts/k3s_install.sh"
+      s.env   = {
+        "K3S_MODE"            => "AGENT",
+        "VM_SERVER_IP"        => VM_WORKER_IP,
+        "VM_SERVER_HOSTNAME"  => VM_WORKER_HOSTNAME,
+      }
+    end
   end
 end
