@@ -1,17 +1,7 @@
-# Installing
+# Node installation
 
-Make sure node is installed
+Build the Docker image with `docker build`
 
-Install npm packages:
+Create and run a container with `docker run`
 
-```
-npm install
-```
-
-To run the app:
-
-```
-npm start
-```
-
-The default port is `8000`
+The container expose the node app on port `80`.
