@@ -1,7 +1,7 @@
 const express = require('express')
 
 const app = express()
-const port = 8000
+const port = 80
 
 app.get('/', (req, res) => {
     res.sendFile('/home.html', {
@@ -9,6 +9,10 @@ app.get('/', (req, res) => {
     })
 })
 
+app.get('/500', (req, res) => {
+  process.exit(1)
+})
+
 app.listen(port, () => {
-  console.log(`Listening on port :${port}`)
+  console.log(`node-app listening on port :${port}`)
 })
