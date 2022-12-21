@@ -28,7 +28,7 @@ Requirements:
 Read the following:
  - [Configuring the app](https://kubernetes.io/docs/concepts/overview/working-with-objects/)
  - [deployment, service and ingress](https://dwdraju.medium.com/how-deployment-service-ingress-are-related-in-their-manifest-a2e553cf0ffb)
- - Use an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) in conjuntion with an [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/), (we use [ingress-nginx](https://kubernetes.github.io/ingress-nginx/deploy/)) to expose HTTP/S routes to [Services inside the cluster](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)
+ - Use an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) in conjuntion with an [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/), (we use **traefik**) to expose HTTP/S routes to [Services inside the cluster](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)
  - [yaml files explained](https://www.youtube.com/watch?v=qmDzcu5uY1I)
 
 ## p3
@@ -67,6 +67,11 @@ For the subject, these chapters are needed:
 ![Example arch](/assets/img/k3s-architecture-single-server.svg)
 
 2. K8s, and what it is:
+ - [Kubernetes API Deployment v1 Specification](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/#DeploymentSpec)
+ - [Kubernetes API Service v1 Specification](https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/)
+ - [Kubernetes API Ingress v1 Specification](https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/#IngressSpec)
+ - [Kubernetes API Pods v1 Specification](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1)
+ - [Kubernetes API Convention](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#types-kinds)
 
 3. k3d, and what it is:
 

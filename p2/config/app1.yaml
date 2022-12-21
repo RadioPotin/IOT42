@@ -1,38 +1,64 @@
+#Deployment enables declarative updates for Pods and ReplicaSets.
 ---
+# kind: a string that identifies the schema this object should have
 kind: Deployment
+# apiVersion: a string that identifies the version of the schema the object should have
 apiVersion: apps/v1
+# ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.
 metadata:
+  # name: a string that uniquely identifies this object within the current namespace
   name: app1
+  # labels: a map of string keys and values that can be used to organize and categorize objects
   labels:
     app: app1
+# spec: DeploymentSpec is the specification of the desired behavior of the Deployment.
 spec:
+  # replicas: Number of desired pods. This is a pointer to distinguish between explicit zero and not specified. Defaults to 1.
   replicas: 1
+  # selector: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
   selector:
+    # matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
     matchLabels:
       app: app1
+  # template: PodTemplateSpec describes the data a pod should have when created from a template
   template:
     metadata:
       labels:
         app: app1
     spec:
+      # containers: List of containers belonging to the pod. Containers cannot currently be added or removed. There must be at least one container in a Pod. Cannot be updated.
       containers:
+      # containers.name: Name of the container specified as a DNS_LABEL. Each container in a pod must have a unique name (DNS_LABEL). Cannot be updated.
       - name: app1
+        # image: Container image name. More info: https://kubernetes.io/docs/concepts/containers/images This field is optional to allow higher level config management to default or override container images in workload controllers like Deployments and StatefulSets.
         image: paulbouwer/hello-kubernetes:1.10
+          # ports: List of ports to expose from the container. Not specifying a port here DOES NOT prevent that port from being exposed. Any port which is listening on the default "0.0.0.0" address inside a container will be accessible from the network.
         ports:
+          # containerPort: Number of port to expose on the pod's IP address. This must be a valid port number, 0 < x < 65536.
           - containerPort: 8080
+        # env: List of environment variables to set in the container. Cannot be updated.
         env:
+        # env.name:Name of the environment variable. Must be a C_IDENTIFIER.
         - name: MESSAGE
+          # env.value: Variable references $(VAR_NAME) are expanded using the previously defined environment variables in the container and any service environment variables. If a variable cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. "$$(VAR_NAME)" will produce the string literal "$(VAR_NAME)". Escaped references will never be expanded, regardless of whether the variable exists or not. Defaults to "".
           value: "Kill me 1"
 
 ---
+# Service is a named abstraction of software service (for example, mysql) consisting of local port (for example 3306) that the proxy listens on, and the selector that determines which pods will answer requests sent through the proxy.
 kind: Service
 apiVersion: v1
 metadata:
+  # Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated.
   name: app1-service
 spec:
+  # service.spec.selector: Route service traffic to pods with label keys and values matching this selector. If empty or not present, the service is assumed to have an external process managing its endpoints, which Kubernetes will not modify. Only applies to types ClusterIP, NodePort, and LoadBalancer. Ignored if type is ExternalName.
   selector:
     app: app1
+  # ports: The list of ports that are exposed by this service.
   ports:
+  # name: The name of this port within the service. This must be a DNS_LABEL. All ports within a ServiceSpec must have unique names. When considering the endpoints for a Service, this must match the 'name' field in the EndpointPort. Optional if only one ServicePort is defined on this service.
   - name: http
+    # port: The port that will be exposed by this service.
     port: 80
+    # targetPort: Number or name of the port to access on the pods targeted by the service. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME. If this is a string, it will be looked up as a named port in the target Pod's container ports. If this is not specified, the value of the 'port' field is used (an identity map). This field is ignored for services with clusterIP=None, and should be omitted or set equal to the 'port' field.
     targetPort: 8080
