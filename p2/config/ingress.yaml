@@ -1,21 +1,40 @@
+# Ingress is a collection of rules that allow inbound connections to reach the endpoints defined by a backend. An Ingress can be configured to give services externally-reachable urls, load balance traffic, terminate SSL, offer name based virtual hosting etc.
 ---
 kind: Ingress
 apiVersion: networking.k8s.io/v1
+#metadata: ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.
 metadata:
+  # name: Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition.
   name: app-ingress
+  # Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects.
   annotations:
+    # DEPRECATION NOTICE: Before the IngressClass resource and ingressClassName field were added in Kubernetes 1.18, Ingress classes were specified with a kubernetes.io/ingress.class annotation on the Ingress. This annotation was never formally defined, but was widely supported by Ingress controllers.
+    # The newer ingressClassName field on Ingresses is a replacement for that annotation, but is not a direct equivalent. While the annotation was generally used to reference the name of the Ingress controller that should implement the Ingress, the field is a reference to an IngressClass resource that contains additional Ingress configuration, including the name of the Ingress controller.
     kubernetes.io/ingress.class: traefik
+# IngressSpec describes the Ingress the user wishes to exist.
 spec:
+  # rules: A list of host rules used to configure the Ingress. If unspecified, or no rule matches, all traffic is sent to the default backend.
+  # IngressRule represents the rules mapping the paths under a specified host to the related backend services. Incoming requests are first evaluated for a host match, then routed to the backend associated with the matching IngressRuleValue.
   rules:
+  # host: Host is the fully qualified domain name of a network host, as defined by RFC 3986. Note the following deviations from the "host" part of the URI as defined in RFC 3986: 1. IPs are not allowed. Currently an IngressRuleValue can only apply to the IP in the Spec of the parent Ingress. 2. The : delimiter is not respected because ports are not allowed. Currently the port of an Ingress is implicitly :80 for http and :443 for https.
   - host: app1.com
+    # http: HTTPIngressRuleValue is a list of http selectors pointing to backends. In the example: http:///? -> backend where where parts of the url correspond to RFC 3986, this resource will be used to match against everything after the last '/' and before the first '?' or '#'.
     http:
+      # paths: A collection of paths that map requests to backends.
       paths:
+      # path: Path is matched against the path of an incoming request. Currently it can contain characters disallowed from the conventional "path" part of a URL as defined by RFC 3986. Paths must begin with a '/' and must be present when using PathType with value "Exact" or "Prefix".
       - path: /
+        # pathType: PathType determines the interpretation of the Path matching. PathType can be one of the following values: * Exact: Matches the URL path exactly. * Prefix: Matches based on a URL path prefix split by '/'. Matching is done on a path element by element basis. A path element refers is the list of labels in the path split by the '/' separator. A request is a match for path p if every p is an element-wise prefix of p of the request path. Note that if the last element of the path is a substring of the last element in request path, it is not a match (e.g. /foo/bar matches /foo/bar/baz, but does not match /foo/barbaz).
         pathType: Prefix
+        # backend: Backend defines the referenced service endpoint to which the traffic will be forwarded to.
         backend:
+          # service: Service references a Service as a Backend. This is a mutually exclusive setting with "Resource".
           service:
+            # name: Name is the referenced service. The service must exist in the same namespace as the Ingress object.
             name: app1-service
+            # port: Port of the referenced service. A port name or port number is required for a IngressServiceBackend.
             port:
+              # number: Number is the numerical port number (e.g. 80) on the Service. This is a mutually exclusive setting with "Name".
               number: 80
   - host: app2.com
     http:
