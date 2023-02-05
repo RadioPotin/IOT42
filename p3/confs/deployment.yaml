@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pgueugno-playground
+  name: pgueugno-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgueugno-playground
+  template:
+    metadata:
+      labels:
+        app: pgueugno-playground
+    spec:
+      containers:
+      - image: wil42/playground:v1
+        name: playground
+        ports:
+        - containerPort: 8888
