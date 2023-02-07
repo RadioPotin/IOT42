@@ -4,7 +4,6 @@ echo "in case of failure ensure prep_env.sh executed properly"
 echo "installing k3d"
 # this should also install k9s, kubie & kubectl
 brew install k3d
-# curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
 echo "configuring k3d"
 k3d cluster create iot \
@@ -36,14 +35,14 @@ echo "configuring argocd and demo app"
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d 
 
 kubectl port-forward service/argocd-server -n argocd 6565:443 &
+echo "access argocd web ui at localhost:6565"
 
 argocd login argocd-server --port-forward --port-forward-namespace argocd --username admin --password $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-#### A MODIFIER PAR APP CIBLE WILL
-argocd app create guestbook --repo https://github.com/argoproj/argocd-example-apps.git --path guestbook --dest-server https://kubernetes.default.svc --dest-namespace default --port-forward --port-forward-namespace argocd
-argocd app sync guestbook --port-forward --port-forward-namespace argocd 
-
-#### A TESTER
-argocd app create --repo https://github.com/RadioPotin/IOT42.git --revision dev/pgueugno --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --port-forward --port-forward-namespace argocd --sync-policy auto
+argocd app create pgueugno-playground --repo https://github.com/RadioPotin/IOT42.git --revision dev/pgueugno --path p3/confs  --sync-policy auto --dest-server https://kubernetes.default.svc --dest-namespace dev --port-forward --port-forward-namespace argocd
 kubectl wait --for=condition=Ready --timeout=-1s pods --all -n dev
-# argocd cluster add $(kubectl config get-contexts -o name) -y
+# port-forward may go down after argocd sync
+kubectl port-forward service/pgueugno-playground -n dev 8888:8888 &
+echo "checking image version"
+curl http://localhost:8888/
+
 
