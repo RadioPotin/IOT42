@@ -90,6 +90,7 @@ Things to do:
    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
    ```
  - [Deploy some argocd-synced app](https://www.youtube.com/watch?v=FV2-eq7TmWc&t=312s)
+   - Alternative is the [declarative setup](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/), easy automatic setup, that's why we do it this way in this repo.
  - Forward the port of that app so that you may access it on your [`localhost:9080`](https://www.containiq.com/post/kubectl-port-forward)
      ```shell-session
      kubectl port-forward <argocd-testpod-name> 9080:80 -n dev 

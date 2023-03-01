@@ -79,4 +79,14 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 echo "ID: admin"
 echo "*********************************************************"
 
+echo "Syncing to argocd... ************************************"
+kubectl apply -f ../config/add_project_to_argo.yaml -n argocd
+
+kubectl apply -f ../config/add_application_to_argo.yaml -n argocd
+
+kubectl wait --for=condition=Ready pods --all -n argocd
+
+echo "Once synced, typed the following to access the app:"
+echo "sudo kubectl port-forward svc/wil-playground -n dev 8888:8888"
+
 setup_done
