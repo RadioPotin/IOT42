@@ -3,30 +3,30 @@ var=""
 setup()
 {
     var=$1
-    echo "*********************************************"
+    echo "*********************************************************"
     echo "[p3/scripts/setup_all.sh] SETTING UP $var ..."
-    echo "*********************************************"
+    echo "*********************************************************"
 }
 
 ok()
 {
-    echo "*********************************************"
+    echo "*********************************************************"
     echo "[p3/scripts/setup_all.sh] $var SET UP !"
-    echo "*********************************************"
+    echo "*********************************************************"
 }
 
 setup_start()
 {
-    echo "*********************************************"
-    echo "******* DOCKER,KUBECTL,K3D SETUP START ******"
-    echo "*********************************************"
+    echo "*********************************************************"
+    echo "************* DOCKER,KUBECTL,K3D SETUP START ************"
+    echo "*********************************************************"
 }
 
 setup_done()
 {
-    echo "*********************************************"
-    echo "******* DOCKER,KUBECTL,K3D SETUP DONE *******"
-    echo "*********************************************"
+    echo "*********************************************************"
+    echo "************* DOCKER,KUBECTL,K3D SETUP DONE *************"
+    echo "*********************************************************"
 }
 
 setup_start
@@ -54,12 +54,12 @@ kubectl create namespace dev
 ok
 
 setup "ARGOCD"
-kubectl apply -f Programmation/System/IOT42/p3/config/install_argocd.yaml -n argocd
+kubectl apply -f ../config/install_argocd.yaml -n argocd
 echo "*********************************************************"
 echo "***************** Waiting for pods... *******************"
 echo "*********************************************************"
 kubectl wait --for=condition=Ready --timeout=-1s pods --all -n argocd
-kubectl apply -f Programmation/System/IOT42/p3/config/argocd_ingress.yaml -n argocd
+kubectl apply -f ../config/argocd_ingress.yaml -n argocd
 kubectl rollout status deployment argocd-server -n argocd
 kubectl rollout status deployment argocd-redis -n argocd
 kubectl rollout status deployment argocd-repo-server -n argocd
@@ -73,9 +73,10 @@ sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
 rm argocd-linux-amd64
 ok
 
-echo "********************************************************************"
+echo "*********************************************************"
 echo "Default Password for ARGOCD:"
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
-echo "********************************************************************"
+echo "ID: admin"
+echo "*********************************************************"
 
 setup_done
