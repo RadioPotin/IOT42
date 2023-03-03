@@ -3,7 +3,7 @@ kind: AppProject
 metadata:
   name: development
   labels:
-    app: argocd-iot
+    app: iot-argocd
 spec:
   description: Our ArgoCD Project to deploy our app locally
   sourceRepos:

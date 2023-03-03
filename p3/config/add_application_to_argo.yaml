@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: iot-argocd-development
+  name: iot-argocd-dev
 spec:
   project: development
   source:
