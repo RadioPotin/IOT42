@@ -1,0 +1,171 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+spec:
+  selector:
+    app: gitlab
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 80
+    - name: ssh
+      port: 22
+      targetPort: 22      
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitlab-ingress
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gitlab
+            port:
+              name: http
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      containers:
+        - name: gitlab
+          image: gitlab/gitlab-ce:latest
+          ports:
+            - containerPort: 80
+            - containerPort: 22
+          env:
+            - name: GITLAB_OMNIBUS_CONFIG
+              value: |
+                external_url 'http://localhost:80'
+                gitlab_rails['initial_root_password'] = 'Satin-Stamp-Outlook5'
+          volumeMounts:
+            - name: gitlab-data
+              mountPath: /var/opt/gitlab
+      volumes:
+        - name: gitlab-data
+          persistentVolumeClaim:
+            claimName: gitlab-data
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab-postgresql
+spec:
+  selector:
+    app: gitlab-postgresql
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432
+  clusterIP: None
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gitlab-postgresql
+spec:
+  replicas: 3
+  serviceName: gitlab-postgresql
+  selector:
+    matchLabels:
+      app: gitlab-postgresql
+  template:
+    metadata:
+      labels:
+        app: gitlab-postgresql
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-postgresql
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-postgresql
+                  key: password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: gitlab-postgresql
+              mountPath: /var/lib/postgresql/data
+      volumeMounts:
+        - name: pg-secrets
+          mountPath: /var/run/secrets/postgresql
+          readOnly: true
+  volumeClaimTemplates:
+    - metadata:
+        name: gitlab-postgresql
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-logs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-postgresql
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: YWRtaW5wb3N0Z3Jlcw==
+
+

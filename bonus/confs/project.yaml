@@ -1,0 +1,16 @@
+# Autre tentative que via cli argocd
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: app-project
+  labels:
+    app: app
+spec:
+  description: Super playground
+  sourceRepos:
+    - "http://localhost:8080/root/*"
+  destinations:
+    - namespace: dev
+      server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false

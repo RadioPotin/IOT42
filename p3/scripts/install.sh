@@ -12,6 +12,8 @@ k3d cluster create iot \
     --agents 2 \
     --port 8080:80@loadbalancer \
     --port 8443:443@loadbalancer \
+    # --port 30888:8888@loadbalancer \
+    --port 8888:8888@loadbalancer \
     --verbose
 kubectl -n kube-system wait --for=condition=complete --timeout=-1s jobs/helm-install-traefik-crd
 kubectl -n kube-system wait --for=condition=complete --timeout=-1s jobs/helm-install-traefik
@@ -24,6 +26,7 @@ echo "install helm"
 brew install helm
 
 echo "install argocd"
+k3d kubeconfig get iot > ~/.kube/config
 kubie ctx k3d-iot
 kubie ns argocd
 helm repo add argo https://argoproj.github.io/argo-helm
@@ -35,6 +38,7 @@ echo "configuring argocd and demo app"
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d 
 
 kubectl port-forward service/argocd-server -n argocd 6565:443 &
+# kubectl port-forward service/argocd-server -n argocd 8443:443 &
 echo "access argocd web ui at localhost:6565"
 
 argocd login argocd-server --port-forward --port-forward-namespace argocd --username admin --password $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)

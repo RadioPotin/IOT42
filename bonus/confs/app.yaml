@@ -1,0 +1,22 @@
+# Autre tentative que via cli argocd
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+    app: app
+  name: app
+spec:
+  project: app-project
+  source:
+    repoURL: http://localhost:8080/root/bonus.git
+    targetRevision: HEAD
+    path: .
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
