@@ -23,18 +23,26 @@ install_done()
 }
 
 # Install latest release of Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sh ./get-docker.sh
+sudo apt autoremove -y docker.io
+sudo apt install -y docker.io
+sudo groupadd docker
+sudo usermod -aG docker dariocp
+
 
 # https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
-KUBERNETES_RELEASE=$(curl -sL https://dl.k8s.io/release/stable.txt)
-curl -LO "https://dl.k8s.io/release/${KUBERNETES_RELEASE}/bin/linux/amd64/kubectl"
-
-install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+if [ ! -f /usr/local/bin/kubectl ] ; then
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    echo 'alias k="/usr/local/bin/kubectl"' >> /home/$USER/.bashrc
+    source /home/$USER/.bashrc
+    rm kubectl
+fi
 
 # INFO ON https://k3d.io/v5.4.6/
 install K3D
-curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+if [ ! -f /usr/local/bin/k3d ] ; then
+    curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+fi
 ok
 
 install_done
